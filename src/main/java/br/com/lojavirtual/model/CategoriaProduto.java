@@ -1,5 +1,7 @@
 package br.com.lojavirtual.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -8,28 +10,19 @@ import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import org.springframework.security.core.GrantedAuthority;
-
-
-/*GrantedAuthority - é a parte de autorizações do spring security*/
 @Entity
-@Table(name = "acesso")
-@SequenceGenerator(name = "seq_acesso", sequenceName = "seq_acesso", initialValue = 1, allocationSize = 1)
-public class Acesso implements GrantedAuthority{
-	
+@Table(name = "categoria_produto")
+@SequenceGenerator(name = "seq_categoria_produto", sequenceName = "seq_categoria_produto", allocationSize = 1, initialValue = 1)
+public class CategoriaProduto implements Serializable {
+
 	private static final long serialVersionUID = 1L;
-	
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_acesso")
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_categoria_produto")
 	private Long id;
 
-	@Column(nullable = false)
-	private String descricao; /* Acesso ex: ROLE_ADMIN ou ROLE_SECRETARIO */
-
-	@Override
-	public String getAuthority() {
-		return this.descricao;
-	}
+	@Column(name = "nome_desc", nullable = false)
+	private String nomeDesc;
 
 	public Long getId() {
 		return id;
@@ -39,12 +32,12 @@ public class Acesso implements GrantedAuthority{
 		this.id = id;
 	}
 
-	public String getDescricao() {
-		return descricao;
+	public String getNomeDesc() {
+		return nomeDesc;
 	}
 
-	public void setDescricao(String descricao) {
-		this.descricao = descricao;
+	public void setNomeDesc(String nomeDesc) {
+		this.nomeDesc = nomeDesc;
 	}
 
 	@Override
@@ -63,7 +56,7 @@ public class Acesso implements GrantedAuthority{
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Acesso other = (Acesso) obj;
+		CategoriaProduto other = (CategoriaProduto) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;
