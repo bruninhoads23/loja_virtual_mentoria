@@ -52,18 +52,19 @@ public class Usuario implements UserDetails {
 	foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "pessoa_fk"))
 	private Pessoa pessoa;
 	
-	
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "usuarios_acesso", 
-		uniqueConstraints = @UniqueConstraint (columnNames = {"usuario_id", "acesso_id"} ,
+	//FetchType.LAZY-- só carrega acesso quando precisar... melhor performance
+	//FetchType.EAGER-- vai trazer do bd todos acessos junto com o usuario
+	@OneToMany(fetch = FetchType.LAZY)//vai criar a tabela usuarios_acesso com as columnNames
+	@JoinTable(name = "usuarios_acesso",
+	uniqueConstraints = @UniqueConstraint (columnNames = {"usuario_id", "acesso_id"} ,
 		name = "unique_acesso_user"),
 	
 	   joinColumns = @JoinColumn(name = "usuario_id", referencedColumnName = "id", table = "usuario", 
-	   unique = false, foreignKey = @ForeignKey(name = "usuario_fk", value = ConstraintMode.CONSTRAINT)), 
-	   
-	inverseJoinColumns = @JoinColumn(name = "acesso_id", 
+	   unique = false, foreignKey = @ForeignKey(name = "usuario_fk", value = ConstraintMode.CONSTRAINT)),  
+	   inverseJoinColumns = @JoinColumn(name = "acesso_id", 
 						unique = false, referencedColumnName = "id", table = "acesso",
 						foreignKey = @ForeignKey(name = "aesso_fk", value = ConstraintMode.CONSTRAINT)))
+	//
 	private List<Acesso> acessos;
 	
 	
@@ -76,23 +77,26 @@ public class Usuario implements UserDetails {
 	}
 	
 
-	/*Autoridades = São os acesso, ou seja ROLE_ADMIN, ROLE_SECRETARIO, ROLE_FINACEIRO*/
+	/*Autoridades = São os acessos, ou seja ROLE_ADMIN, ROLE_SECRETARIO, ROLE_FINANCEIRO*/
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		
 		return this.acessos;
 	}
 
+	//retorna a senha
 	@Override
 	public String getPassword() {
 		return this.senha;
 	}
 
+	//retorna o Login
 	@Override
 	public String getUsername() {
 		return this.login;
 	}
 
+	// se o login está expirado
 	@Override
 	public boolean isAccountNonExpired() {
 		return true;
@@ -102,12 +106,14 @@ public class Usuario implements UserDetails {
 	public boolean isAccountNonLocked() {
 		return true;
 	}
-
+	
+	// se a credencial não expirou
 	@Override
 	public boolean isCredentialsNonExpired() {
 		return true;
 	}
 
+	// se o login está habilitado
 	@Override
 	public boolean isEnabled() {
 		return true;
