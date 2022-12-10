@@ -47,7 +47,7 @@ public abstract class Pessoa implements Serializable {
 	
 	/* orphanRemoval = true  se apagar uma pessoa vai apagar um endereço.*/
 	/* cascade = CascadeType.ALL se inserir, deletar ou atualizar uma pessoa vai fazer tudo em cascata*/
-	/* fetch = FetchType.LAZY só carrega os endereços se der um GEtEndereços*/
+	/* fetch = FetchType.LAZY só carrega os endereços se der um GetEndereços*/
 	public void setEnderecos(List<Endereco> enderecos) {
 		this.enderecos = enderecos;
 	}
