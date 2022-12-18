@@ -1,41 +1,77 @@
 package br.com.lojavirtual.security;
 
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionIdListener;
 
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
+
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+
+import br.com.lojavirtual.service.ImplementacaoUserDetailsService;
+
 
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
-public class WebSecurityConfig {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter   implements HttpSessionIdListener {
+	
+	
+	@Autowired
+	private ImplementacaoUserDetailsService implementacaoUserDetailsService;
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-		http
+	
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception{
+		auth.userDetailsService(implementacaoUserDetailsService).passwordEncoder(new BCryptPasswordEncoder());
+	}
+	
+    @Override
+	public void configure(HttpSecurity http) throws Exception {
 		
-		.httpBasic()
-		.and()
-		.authorizeHttpRequests()
-		.antMatchers(HttpMethod.GET,"/salvarAcesso/**").permitAll()
-		.antMatchers(HttpMethod.POST,"/deleteAcesso/**").permitAll()
-		.antMatchers(HttpMethod.DELETE,"/deleteAcesso/**").permitAll()
-		.anyRequest().authenticated()
-		.and()
-		.csrf().disable();
-		return http.build();	
-	}
-	
-	
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();	
-	}
-}
+    	
+		http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+		.disable().authorizeRequests().antMatchers("/").permitAll()
+		.antMatchers("/index").permitAll()
+		.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+		
+		/* redireciona ou da um retorno para index quando desloga*/
+		.anyRequest().authenticated().and().logout().logoutSuccessUrl("/index")
+		
+		/*mapeia o logout do sistema*/
+		.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+		
+		/*Filtra as requisicoes para login de JWT*/
+		.and().addFilterAfter(new JWTLoginFilter("/login",authenticationManager()), 
+				UsernamePasswordAuthenticationFilter.class)
+		
+	     .addFilterBefore(new JWTApiAutenticacaoFilter(), UsernamePasswordAuthenticationFilter.class);
 
+	}
+
+
+	@Override
+	public void sessionIdChanged(HttpSessionEvent se, String oldSessionId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+}
+	
+//}
+	

@@ -42,9 +42,11 @@ public abstract class Pessoa implements Serializable {
 	@Column(nullable = false)
 	private String telefone;
 	
+	
 	@OneToMany(mappedBy = "pessoa", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Endereco> enderecos = new ArrayList<Endereco>();
-	
+
+
 	/* orphanRemoval = true  se apagar uma pessoa vai apagar um endereço.*/
 	/* cascade = CascadeType.ALL se inserir, deletar ou atualizar uma pessoa vai fazer tudo em cascata*/
 	/* fetch = FetchType.LAZY só carrega os endereços se der um GetEndereços*/

@@ -39,6 +39,46 @@ public class Usuario implements UserDetails {
 	@Column(nullable = false)
 	private String login;
 	
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
+
+	public Date getDataAtualSenha() {
+		return dataAtualSenha;
+	}
+
+	public void setDataAtualSenha(Date dataAtualSenha) {
+		this.dataAtualSenha = dataAtualSenha;
+	}
+
+	public List<Acesso> getAcessos() {
+		return acessos;
+	}
+
+	public void setAcessos(List<Acesso> acessos) {
+		this.acessos = acessos;
+	}
+
+	public String getLogin() {
+		return login;
+	}
+
+	public void setLogin(String login) {
+		this.login = login;
+	}
+
 	@Column(nullable = false)
 	private String senha;
 	
@@ -54,7 +94,7 @@ public class Usuario implements UserDetails {
 	
 	//FetchType.LAZY-- só carrega acesso quando precisar... melhor performance
 	//FetchType.EAGER-- vai trazer do bd todos acessos junto com o usuario
-	@OneToMany(fetch = FetchType.LAZY)//vai criar a tabela usuarios_acesso com as columnNames
+	@OneToMany(fetch = FetchType.EAGER)//vai criar a tabela usuarios_acesso com as columnNames
 	@JoinTable(name = "usuarios_acesso",
 	uniqueConstraints = @UniqueConstraint (columnNames = {"usuario_id", "acesso_id"} ,
 		name = "unique_acesso_user"),
