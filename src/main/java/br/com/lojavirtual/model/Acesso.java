@@ -11,6 +11,7 @@ import javax.persistence.Table;
 import org.springframework.security.core.GrantedAuthority;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 
 /*GrantedAuthority - é a parte de autorizações do spring security*/

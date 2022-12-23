@@ -24,10 +24,10 @@ import br.com.lojavirtual.model.Usuario;
 
 public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter{
 
-	/*Confgurando o gerenciado de autenticacao*/
+	/*Confgurando o gerenciador de autenticacao*/
 	public JWTLoginFilter(String url, AuthenticationManager authenticationManager) {
 	
-		/*Ibriga a autenticat a url*/
+		/*Obriga a autentição da url*/
 		super(new AntPathRequestMatcher(url));
 		
 		/*Gerenciador de autenticao*/
@@ -35,8 +35,7 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter{
 		
 	}
 
-	
-	/*Retorna o usuário ao processr a autenticacao*/
+	/*Retorna o usuário ao processar a autenticacao*/
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
 			throws AuthenticationException, IOException, ServletException {
@@ -60,7 +59,7 @@ public class JWTLoginFilter extends AbstractAuthenticationProcessingFilter{
 		}
 	}
 	
-	
+	//método para verificar falha de login
 	@Override
 	protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException failed) throws IOException, ServletException {
