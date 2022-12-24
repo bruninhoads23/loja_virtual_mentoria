@@ -2,6 +2,7 @@ package br.com.lojavirtual;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Calendar;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ public class LojaVirtualMentoriaApplicationTests {
 
 		Acesso acesso = new Acesso();
 
-		acesso.setDescricao("ROLE_CADASTRAR_ACESSO");
+		acesso.setDescricao("ROLE_ACESSO");
 
 		ObjectMapper objectMapper = new ObjectMapper();
 
@@ -205,17 +206,19 @@ public class LojaVirtualMentoriaApplicationTests {
 	public void testCadastrarAcesso() throws ExceptionMentoriaJava {
 
 		Acesso acesso = new Acesso();
-
-		acesso.setDescricao("ROLE_BRUNINHO");
+		
+        String desacesso = "ROLE_USER" + Calendar.getInstance().getTimeInMillis();
+		
+		acesso.setDescricao(desacesso);
 
 		/* Gravou no banco de dados */
 
 		acesso = acessoController.salvarAcesso(acesso).getBody();
-
+		
 		assertEquals(true, acesso.getId() > 0);
 
 		/* validar os dados salvos de forma correta */
-		assertEquals("ROLE_BRUNINHO", acesso.getDescricao());
+		assertEquals(desacesso, acesso.getDescricao());
 
 		/* teste de carregamento */
 		Acesso acesso2 = acessoRepository.findById(acesso.getId()).get();

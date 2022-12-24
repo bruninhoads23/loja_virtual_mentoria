@@ -44,7 +44,6 @@ public class AcessoController {
 		 if(!acessos.isEmpty()) {
 			 throw new ExceptionMentoriaJava("Já existe acesso com a descrição " + acesso.getDescricao());
 		 }
-		
 		}
 
 		Acesso acessoSalvo = acessoService.save(acesso);
@@ -79,11 +78,11 @@ public class AcessoController {
 		
 		if(acesso == null) {
 			
-			throw new ExceptionMentoriaJava("Não encontrou o acesso com o código" + id);
+			throw new ExceptionMentoriaJava("Acesso com ID: " + id + "não foi encontrado");
 			
 		}
 		
-		return new ResponseEntity<Acesso>(acesso,HttpStatus.OK);
+		return new ResponseEntity(acesso,HttpStatus.OK);
 	}
 	
 	@ResponseBody
