@@ -54,7 +54,7 @@ public class ControleException extends ResponseEntityExceptionHandler {
 				
 			}
 			
-		}if(ex instanceof HttpMessageNotReadableException){
+		}else if(ex instanceof HttpMessageNotReadableException){
 			
 			msg = "não está sendo enviado mensagem para o corpo da requisição";
 			

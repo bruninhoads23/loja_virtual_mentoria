@@ -19,6 +19,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 
 /* A classe Pessoa nunca trabalhamos diretamente com ela. 
@@ -37,6 +39,8 @@ public abstract class Pessoa implements Serializable {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pessoa")
 	private Long id;
 
+	@NotBlank(message = "Nome deve ser informado")//nao deve ser branco
+	@NotNull(message = "Nome deve ser informado")//nao deve ser nullo
 	@Column(nullable = false)
 	private String nome;
 
