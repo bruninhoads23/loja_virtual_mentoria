@@ -1,9 +1,14 @@
 package br.com.lojavirtual;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.mail.MessagingException;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,10 +23,14 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import br.com.lojavirtual.model.dto.ObjectErrorDTO;
+import br.com.lojavirtual.service.ServiceSendEmail;
 
 @RestControllerAdvice
 @ControllerAdvice
 public class ControleException extends ResponseEntityExceptionHandler {
+	
+	@Autowired
+	private ServiceSendEmail serviceSendEmail;
 	
 	@ExceptionHandler(ExceptionMentoriaJava.class)
 	public ResponseEntity<Object> handleExceptionCustom (ExceptionMentoriaJava ex){
@@ -31,8 +40,6 @@ public class ControleException extends ResponseEntityExceptionHandler {
 		objectErrorDTO.setCode(HttpStatus.OK.toString());
 		
 		return new ResponseEntity<Object>(objectErrorDTO, HttpStatus.OK);
-		
-		
 		
 	}
 	
@@ -67,6 +74,17 @@ public class ControleException extends ResponseEntityExceptionHandler {
 		objectErrorDTO.setCode(status.value() + " ==> " + status.getReasonPhrase()); 
 		
 		ex.printStackTrace();
+		
+		//envia email para suporte quando der erro na loja virtual
+		try {
+			serviceSendEmail.enviarEmailHtml("Erro na Loja Virtual", 
+					ExceptionUtils.getStackTrace(ex), 
+					"bruninhoads23@gmail.com");
+		} catch (UnsupportedEncodingException | MessagingException e) {
+	
+			e.printStackTrace();
+		}
+		
 		return new ResponseEntity<Object>(objectErrorDTO, HttpStatus.INTERNAL_SERVER_ERROR);
 			
 		}
@@ -96,6 +114,15 @@ public class ControleException extends ResponseEntityExceptionHandler {
 	objetoErrorDTO.setCode(HttpStatus.INTERNAL_SERVER_ERROR.toString()); 
 	
 	ex.printStackTrace();
+	
+	try {
+		serviceSendEmail.enviarEmailHtml("Erro na Loja Virtual", 
+				ExceptionUtils.getStackTrace(ex), 
+				"bruninhoads23@gmail.com");
+	} catch (UnsupportedEncodingException | MessagingException e) {
+
+		e.printStackTrace();
+	}
 	
 	return new ResponseEntity<Object>(objetoErrorDTO, HttpStatus.INTERNAL_SERVER_ERROR);
 	
