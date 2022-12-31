@@ -3,6 +3,7 @@ package br.com.lojavirtual.model;
 import java.io.Serializable;
 import java.util.Objects;
 
+import javax.persistence.Column;
 import javax.persistence.ConstraintMode;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -13,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @Table(name="marca_produto")
@@ -25,18 +27,21 @@ public class MarcaProduto implements Serializable {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "seq_marca_produto")
 	private Long id;
 	
+	@NotNull(message = "O nome da descrição da Marca deve ser informada!")
+	@Column(nullable = false)
 	private String nomeDesc;
 	
-	@ManyToOne(targetEntity = Pessoa.class)
+	@NotNull(message = "A Marca da Empresa deve ser informada!")
+	@ManyToOne(targetEntity = PessoaJuridica.class)
 	@JoinColumn(name = "empresa_id", nullable = false, 
 	foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_id_fk"))
-	private Pessoa empresa;
+	private PessoaJuridica empresa;
 
-	public Pessoa getEmpresa() {
+	public PessoaJuridica getEmpresa() {
 		return empresa;
 	}
 
-	public void setEmpresa(Pessoa empresa) {
+	public void setEmpresa(PessoaJuridica empresa) {
 		this.empresa = empresa;
 	}
 
