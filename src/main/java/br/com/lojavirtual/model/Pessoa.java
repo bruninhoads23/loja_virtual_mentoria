@@ -19,15 +19,13 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 
-/* A classe Pessoa nunca trabalhamos diretamente com ela. 
- * Por isso que ela é uma classe abstrata. Os atributos são comuns
- * */
 
-/* Pessoa é uma tabela, mas não tabela física no BD Por isso utiliza @Inheritance*/
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 @SequenceGenerator(name = "seq_pessoa", sequenceName = "seq_pessoa", initialValue = 1, allocationSize = 1)
@@ -39,11 +37,13 @@ public abstract class Pessoa implements Serializable {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_pessoa")
 	private Long id;
 
-	@NotBlank(message = "Nome deve ser informado")//nao deve ser branco
-	@NotNull(message = "Nome deve ser informado")//nao deve ser nullo
+	@Size(min = 4, message = "O nome deve ter no minimo 4 letras")
+	@NotBlank(message = "Nome deve ser informado")
+	@NotNull(message = "Nome deve ser informado")
 	@Column(nullable = false)
 	private String nome;
 
+	@Email
 	@Column(nullable = false)
 	private String email;
 
@@ -53,24 +53,18 @@ public abstract class Pessoa implements Serializable {
 	@Column
 	private String tipoPessoa; 
 	
-	
-	public String getTipoPessoa() {
-		return tipoPessoa;
-	}
-
-	public void setTipoPessoa(String tipoPessoa) {
-		this.tipoPessoa = tipoPessoa;
-	}
-
 	@OneToMany(mappedBy = "pessoa", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Endereco> enderecos = new ArrayList<Endereco>();
+	
 	
 	@ManyToOne(targetEntity = Pessoa.class)
 	@JoinColumn(name = "empresa_id", nullable = true, 
 	foreignKey = @ForeignKey(value = ConstraintMode.CONSTRAINT, name = "empresa_id_fk"))
 	private Pessoa empresa;
 	
-
+	
+	
+	
 	public Pessoa getEmpresa() {
 		return empresa;
 	}
@@ -79,10 +73,15 @@ public abstract class Pessoa implements Serializable {
 		this.empresa = empresa;
 	}
 
-
-	/* orphanRemoval = true  se apagar uma pessoa vai apagar um endereço.*/
-	/* cascade = CascadeType.ALL se inserir, deletar ou atualizar uma pessoa vai fazer tudo em cascata*/
-	/* fetch = FetchType.LAZY só carrega os endereços se der um GetEndereços*/
+	public void setTipoPessoa(String tipoPessoa) {
+		this.tipoPessoa = tipoPessoa;
+	}
+	
+	public String getTipoPessoa() {
+		return tipoPessoa;
+	}
+	
+	
 	public void setEnderecos(List<Endereco> enderecos) {
 		this.enderecos = enderecos;
 	}
@@ -149,4 +148,3 @@ public abstract class Pessoa implements Serializable {
 	}
 
 }
-

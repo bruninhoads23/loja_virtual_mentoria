@@ -7,7 +7,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -110,13 +110,14 @@ public class PessoaController {
 
 			throw new ExceptionMentoriaJava("Já existe CNPJ cadastrado com o número" + pessoaJuridica.getCnpj());
 		}
-
+		/* verifica se esta cadastrando uma pessoa nova com INSCRIÇÃO ESTADUAL que já existe */
 		if (pessoaJuridica.getId() == null
 				&& pessoaRepository.existeInsEstadualCadastrado(pessoaJuridica.getInscEstadual()) != null) {
 			throw new ExceptionMentoriaJava(
 					"Já existe Inscrição estadual cadastrado com o número: " + pessoaJuridica.getInscEstadual());
 		}
 
+		/* verifica se o CNPJ ESTÁ SENDO VALIDADO COM AS REGRAS DE CNPJ */
 		if (!ValidaCNPJ.isCNPJ(pessoaJuridica.getCnpj())) {
 			throw new ExceptionMentoriaJava("Cnpj : " + pessoaJuridica.getCnpj() + " está inválido.");
 		}

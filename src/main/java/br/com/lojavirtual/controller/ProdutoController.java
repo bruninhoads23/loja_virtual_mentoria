@@ -1,8 +1,16 @@
 package br.com.lojavirtual.controller;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+import javax.mail.MessagingException;
 import javax.validation.Valid;
+import javax.xml.bind.DatatypeConverter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,96 +23,195 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
 import br.com.lojavirtual.ExceptionMentoriaJava;
 import br.com.lojavirtual.model.Produto;
 import br.com.lojavirtual.repository.ProdutoRepository;
+import br.com.lojavirtual.service.ServiceSendEmail;
 
 @Controller
 @RestController
-public class ProdutoController  {
-
+public class ProdutoController {
 	
 	@Autowired
 	private ProdutoRepository produtoRepository;
-
-	//SALVAR Produto
-	@ResponseBody /*para poder dar um retorno para API*/
-	@PostMapping(value ="/salvarProduto")/*mapeando a url para receber JSON*/
-	public ResponseEntity<Produto> salvarProduto(@RequestBody @Valid Produto produto) throws ExceptionMentoriaJava {/*receber JSON e converte para Objeto*/
+	
+	@Autowired
+	private ServiceSendEmail serviceSendEmail; 
+	
+	
+	@ResponseBody /*Poder dar um retorno da API*/
+	@PostMapping(value = "/salvarProduto") /*Mapeando a url para receber JSON*/
+	public ResponseEntity<Produto> salvarAcesso(@RequestBody @Valid Produto produto) throws ExceptionMentoriaJava, MessagingException, IOException { /*Recebe o JSON e converte pra Objeto*/
 		
-		if(produto.getEmpresa()==null || produto.getEmpresa().getId() < 0) {
-			 throw new ExceptionMentoriaJava("A empresa deve ser informada ");
+		
+		if (produto.getTipoUnidade() == null || produto.getTipoUnidade().trim().isEmpty()) {
+			throw new ExceptionMentoriaJava("Tipo da unidade deve ser informada");
 		}
 		
-		if(produto.getId() == null) {
-		List<Produto>  produtos = produtoRepository.buscarNomeProduto(produto.getNome().toUpperCase(), produto.getEmpresa().getId());
-		 if(!produtos.isEmpty()) {
-			 throw new ExceptionMentoriaJava("Já existe Produto com este nome " + produto.getNome());
-		 }
+		if (produto.getNome().length() < 10) {
+			throw new ExceptionMentoriaJava("Nome do produto deve ter mais de 10 letras.");
 		}
 		
-		//empresa é nova e id dela não existe!
+		
+		if (produto.getEmpresa() == null || produto.getEmpresa().getId() <= 0) {
+			throw new ExceptionMentoriaJava("Empresa responsável deve ser informada");
+		}
+		
+		if (produto.getId() == null) {
+		  List<Produto> produtos  = produtoRepository.buscarNomeProduto(produto.getNome().toUpperCase(), produto.getEmpresa().getId());
+		  
+		  if (!produtos.isEmpty()) {
+			  throw new ExceptionMentoriaJava("Já existe Produto com a descrição: " + produto.getNome());
+		  }
+		}
 		
 		
-		//categoria do produto não foi passado como parâmetro ou id da categoria  não existe!
-		if(produto.getCategoriaProduto() == null|| produto.getCategoriaProduto().getId() < 0) {
-			 throw new ExceptionMentoriaJava("A Categoria do Produto deve ser informada ");
+		if (produto.getCategoriaProduto() == null || produto.getCategoriaProduto().getId() <= 0) {
+			throw new ExceptionMentoriaJava("Categoria deve ser informada");
+		}
+		
+		
+		if (produto.getMarcaProduto() == null || produto.getMarcaProduto().getId() <= 0) {
+			throw new ExceptionMentoriaJava("Marca deve ser informada");
+		}
+		
+		if (produto.getQtdEstoque() < 1) {
+			throw new ExceptionMentoriaJava("O produto dever ter no minímo 1 no estoque.");
+		}
+		
+		
+		
+		if (produto.getImagens() == null || produto.getImagens().isEmpty() || produto.getImagens().size() == 0) {
+			throw new ExceptionMentoriaJava("Deve ser informado imagens para o produto.");
+		}
+		
+		if (produto.getImagens().size() < 3) {
+			throw new ExceptionMentoriaJava("Deve ser informado pelo menos 3 imagens para o produto.");
+		}
+		
+		
+		if (produto.getImagens().size() > 6) {
+			throw new ExceptionMentoriaJava("Deve ser informado no máximo 6 imagens.");
+		}
+		
+		
+		if (produto.getId() == null) {
 			
-		}
-		
-		//marca do produto não foi passado como parâmetro ou id da marca  não existe!
-				if(produto.getMarcaProduto() == null|| produto.getMarcaProduto().getId() < 0) {
-					 throw new ExceptionMentoriaJava("A Marca do Produto deve ser informada ");
+			for (int x = 0; x < produto.getImagens().size(); x++) {
+				produto.getImagens().get(x).setProduto(produto);
+				produto.getImagens().get(x).setEmpresa(produto.getEmpresa());
+				
+				String base64Image = "";
+				
+				if (produto.getImagens().get(x).getImagemOriginal().contains("data:image")) {
+					base64Image = produto.getImagens().get(x).getImagemOriginal().split(",")[1];
+				}else {
+					base64Image = produto.getImagens().get(x).getImagemOriginal();
+				}
+				
+				byte[] imageBytes =  DatatypeConverter.parseBase64Binary(base64Image);
+				
+				BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+				
+				if (bufferedImage != null) {
+					
+					int type = bufferedImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : bufferedImage.getType();
+					int largura = Integer.parseInt("800");
+					int altura = Integer.parseInt("600");
+					
+					BufferedImage resizedImage = new BufferedImage(largura, altura, type);
+					Graphics2D g = resizedImage.createGraphics();
+					g.drawImage(bufferedImage, 0, 0, largura, altura, null);
+					g.dispose();
+					
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					ImageIO.write(resizedImage, "png", baos);
+					
+					String miniImgBase64 = "data:image/png;base64," + DatatypeConverter.printBase64Binary(baos.toByteArray());
+					
+					produto.getImagens().get(x).setImagemMiniatura(miniImgBase64);
+					
+					bufferedImage.flush();
+					resizedImage.flush();
+					baos.flush();
+					baos.close();
 					
 				}
-
+			}
+		}
+		
+		
+		
 		Produto produtoSalvo = produtoRepository.save(produto);
+		
+		
+
+		if (produto.getAlertaQtdeEstoque() && produto.getQtdEstoque() <= 1) {
+			
+			StringBuilder html = new StringBuilder();
+			html.append("<h2>")
+			.append("Produto: " + produto.getNome())
+			.append(" com estoque baixo: " + produto.getQtdEstoque());
+			html.append("<p> Id Prod.:").append(produto.getId()).append("</p>");
+			
+			if (produto.getEmpresa().getEmail() != null) {
+				serviceSendEmail.enviarEmailHtml("Produto sem estoque" , html.toString(), produto.getEmpresa().getEmail());
+			}
+		}
+		
 		return new ResponseEntity<Produto>(produtoSalvo, HttpStatus.OK);
 	}
 	
-
-	//DELETAR PRODUTO
-	@ResponseBody /*para poder dar um retorno para API*/
-	@PostMapping(value ="/deleteProduto")/*mapeando a url para receber JSON*/
-	public ResponseEntity<?> deleteProduto(@RequestBody Produto produto) {/*receber JSON e converte para Objeto*/
+	
+	
+	@ResponseBody /*Poder dar um retorno da API*/
+	@PostMapping(value = "/deleteProduto") /*Mapeando a url para receber JSON*/
+	public ResponseEntity<String> deleteProduto(@RequestBody Produto produto) { /*Recebe o JSON e converte pra Objeto*/
 		
 		produtoRepository.deleteById(produto.getId());
-		return new ResponseEntity("Produto removido com sucesso!",HttpStatus.OK);
+		
+		return new ResponseEntity<String>("Produto Removido",HttpStatus.OK);
+	}
+	
+
+	//@Secured({ "ROLE_GERENTE", "ROLE_ADMIN" })
+	@ResponseBody
+	@DeleteMapping(value = "/deleteProdutoPorId/{id}")
+	public ResponseEntity<String> deleteProdutoPorId(@PathVariable("id") Long id) { 
+		
+		produtoRepository.deleteById(id);
+		
+		return new ResponseEntity<String>("Produto Removido",HttpStatus.OK);
 	}
 	
 	
-	//DELETAR PRODUTO POR ID
-	@ResponseBody 
-	@DeleteMapping(value ="/deleteProdutoPorId/{id}")
-	public ResponseEntity<?> deleteProdutoPorId(@PathVariable("id") Long id) {
-		
-		produtoRepository.deleteById(id);
-		return new ResponseEntity("Produto removido por id com sucesso!",HttpStatus.OK);
-    }
 	
 	@ResponseBody
 	@GetMapping(value = "/obterProduto/{id}")
-	public ResponseEntity<Produto> obterProduto(@PathVariable("id") Long id) throws ExceptionMentoriaJava { 
+	public ResponseEntity<Produto> obterAcesso(@PathVariable("id") Long id) throws ExceptionMentoriaJava { 
 		
-		Produto produto= produtoRepository.findById(id).orElse(null);
+		Produto produto = produtoRepository.findById(id).orElse(null);
 		
-		if(produto == null) {
-			
-			throw new ExceptionMentoriaJava("Produto com ID: " + id + "não foi encontrado");
-			
+		if (produto == null) {
+			throw new ExceptionMentoriaJava("Não encontrou Produto com código: " + id);
 		}
 		
 		return new ResponseEntity<Produto>(produto,HttpStatus.OK);
 	}
 	
+	
+	
 	@ResponseBody
-	@GetMapping(value = "/buscarProdutoPorNome/{nome}")
-	public ResponseEntity<List<Produto>> buscarProdutoPorNome(@PathVariable("nome") String nome) { 
+	@GetMapping(value = "/buscarProdNome/{desc}")
+	public ResponseEntity<List<Produto>> buscarProdNome(@PathVariable("desc") String desc) { 
 		
-		List<Produto> produtos = produtoRepository.buscarNomeProduto(nome.toUpperCase());
+		List<Produto> acesso = produtoRepository.buscarNomeProduto(desc.toUpperCase());
 		
-		return new ResponseEntity<List<Produto>>(produtos,HttpStatus.OK);
+		return new ResponseEntity<List<Produto>>(acesso,HttpStatus.OK);
 	}
+	
+	
 	
 
 }

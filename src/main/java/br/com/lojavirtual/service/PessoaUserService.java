@@ -35,10 +35,12 @@ public class PessoaUserService {
 	@Autowired
 	private PessoaFisicaRepository pesssoaFisicaRepository;
 	
-	
+	/*
+	 * QUANDO É SALVO UMA PESSOA JURÍDICA É SALVO TBM UM USUARIO NA TABELA USUAROS  E MANDADO EMAIL PARA ELE COM USUARIO E SENHA
+	 * */
 	public PessoaJuridica salvarPessoaJuridica(PessoaJuridica juridica) {
 		
-		//juridica = pesssoaRepository.save(juridica);
+		
 		
 		for (int i = 0; i< juridica.getEnderecos().size(); i++) {
 			juridica.getEnderecos().get(i).setPessoa(juridica);
@@ -100,7 +102,7 @@ public class PessoaUserService {
 			//pessoaFisica.getEnderecos().get(i).setEmpresa(pessoaFisica);
 		}
 		
-		pessoaFisica = pesssoaFisicaRepository.save(pessoaFisica);
+		pessoaFisica = pesssoaFisicaRepository.saveAndFlush(pessoaFisica);
 		
 		Usuario usuarioPj = usuarioRepository.findUserByPessoa(pessoaFisica.getId(), pessoaFisica.getEmail());
 		
